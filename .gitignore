@@ -1,0 +1,4 @@
+﻿__pycache__/
+*.pyc
+# Regenerable trained models (run scripts/01_train.py)
+results/models/

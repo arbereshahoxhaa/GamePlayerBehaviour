@@ -1,0 +1,214 @@
+{
+  "dataset": {
+    "rows_raw": 40034,
+    "rows_used": 40034,
+    "n_features": 21,
+    "class_counts": {
+      "Medium": 19374,
+      "High": 10336,
+      "Low": 10324
+    },
+    "train": 32027,
+    "test": 8007,
+    "medians": {
+      "SessionsPerWeek": 9.0,
+      "AvgSessionDurationMinutes": 95.0,
+      "PlayTimeHours": 12.00800215801307,
+      "PlayerLevel": 49.0,
+      "AchievementsUnlocked": 25.0,
+      "Age": 32.0
+    },
+    "feature_names": [
+      "Age",
+      "PlayTimeHours",
+      "InGamePurchases",
+      "SessionsPerWeek",
+      "AvgSessionDurationMinutes",
+      "PlayerLevel",
+      "AchievementsUnlocked",
+      "Gender_Female",
+      "Gender_Male",
+      "Location_Asia",
+      "Location_Europe",
+      "Location_Other",
+      "Location_USA",
+      "GameGenre_Action",
+      "GameGenre_RPG",
+      "GameGenre_Simulation",
+      "GameGenre_Sports",
+      "GameGenre_Strategy",
+      "GameDifficulty_Easy",
+      "GameDifficulty_Hard",
+      "GameDifficulty_Medium"
+    ]
+  },
+  "models": {
+    "Logistic Regression": {
+      "accuracy": 0.8261521168977145,
+      "f1_macro": 0.8194189189752636,
+      "cv_f1_macro_mean": 0.8155791573214144,
+      "cv_f1_macro_std": 0.002987714648662012,
+      "per_class": {
+        "Low": {
+          "precision": 0.8011019283746557,
+          "recall": 0.7041162227602905,
+          "f1-score": 0.7494845360824742,
+          "support": 2065.0
+        },
+        "Medium": {
+          "precision": 0.8019065333643339,
+          "recall": 0.8900645161290323,
+          "f1-score": 0.8436888454011742,
+          "support": 3875.0
+        },
+        "High": {
+          "precision": 0.9053410893707033,
+          "recall": 0.8282535074987906,
+          "f1-score": 0.8650833754421425,
+          "support": 2067.0
+        },
+        "accuracy": 0.8261521168977145,
+        "macro avg": {
+          "precision": 0.8361165170365643,
+          "recall": 0.8074780821293711,
+          "f1-score": 0.8194189189752636,
+          "support": 8007.0
+        },
+        "weighted avg": {
+          "precision": 0.8284005658311104,
+          "recall": 0.8261521168977145,
+          "f1-score": 0.8249165954763042,
+          "support": 8007.0
+        }
+      }
+    },
+    "Decision Tree": {
+      "accuracy": 0.8743599350568253,
+      "f1_macro": 0.8695726093560335,
+      "cv_f1_macro_mean": 0.8676680527669319,
+      "cv_f1_macro_std": 0.00277535591426364,
+      "per_class": {
+        "Low": {
+          "precision": 0.8665287118468702,
+          "recall": 0.8111380145278451,
+          "f1-score": 0.8379189594797398,
+          "support": 2065.0
+        },
+        "Medium": {
+          "precision": 0.8630836575875487,
+          "recall": 0.9158709677419354,
+          "f1-score": 0.8886941279579317,
+          "support": 3875.0
+        },
+        "High": {
+          "precision": 0.9057084607543323,
+          "recall": 0.8597000483792937,
+          "f1-score": 0.8821047406304294,
+          "support": 2067.0
+        },
+        "accuracy": 0.8743599350568253,
+        "macro avg": {
+          "precision": 0.8784402767295837,
+          "recall": 0.8622363435496915,
+          "f1-score": 0.8695726093560335,
+          "support": 8007.0
+        },
+        "weighted avg": {
+          "precision": 0.8749756902079109,
+          "recall": 0.8743599350568253,
+          "f1-score": 0.8738982010797735,
+          "support": 8007.0
+        }
+      }
+    },
+    "Random Forest": {
+      "accuracy": 0.9025852379168228,
+      "f1_macro": 0.8977820781749798,
+      "cv_f1_macro_mean": 0.8937375824743933,
+      "cv_f1_macro_std": 0.0026068342093668317,
+      "per_class": {
+        "Low": {
+          "precision": 0.9145780051150895,
+          "recall": 0.8658595641646489,
+          "f1-score": 0.8895522388059701,
+          "support": 2065.0
+        },
+        "Medium": {
+          "precision": 0.8874667954600338,
+          "recall": 0.9483870967741935,
+          "f1-score": 0.9169161676646707,
+          "support": 3875.0
+        },
+        "High": {
+          "precision": 0.9230769230769231,
+          "recall": 0.8534107402031931,
+          "f1-score": 0.8868778280542986,
+          "support": 2067.0
+        },
+        "accuracy": 0.9025852379168228,
+        "macro avg": {
+          "precision": 0.9083739078840155,
+          "recall": 0.889219133714012,
+          "f1-score": 0.8977820781749798,
+          "support": 8007.0
+        },
+        "weighted avg": {
+          "precision": 0.9036514815749083,
+          "recall": 0.9025852379168228,
+          "f1-score": 0.9021046576024931,
+          "support": 8007.0
+        }
+      }
+    }
+  },
+  "xai": {
+    "rf_impurity": {
+      "SessionsPerWeek": 0.3960227980275246,
+      "AvgSessionDurationMinutes": 0.27128518527717344,
+      "PlayTimeHours": 0.06511445937274674,
+      "PlayerLevel": 0.0625086811755785,
+      "AchievementsUnlocked": 0.0582809949462268,
+      "Age": 0.05119864523806938,
+      "InGamePurchases": 0.00829143617848249,
+      "Location_USA": 0.007189401023686835,
+      "Location_Europe": 0.006926347814710453,
+      "GameDifficulty_Easy": 0.0066883873261619825
+    },
+    "rf_permutation": {
+      "SessionsPerWeek": 0.43140943536983645,
+      "AvgSessionDurationMinutes": 0.34289078041096716,
+      "AchievementsUnlocked": 0.025754760685386558,
+      "PlayerLevel": 0.022920921237753588,
+      "PlayTimeHours": 0.0007174790916298801,
+      "Gender_Female": 0.0006629579156569365,
+      "Age": 0.0005193031532347403,
+      "Location_Other": 0.00026605683157594485,
+      "InGamePurchases": 0.00018448058488457209,
+      "GameGenre_Simulation": 0.00017028410706155795
+    },
+    "shap_mean_abs": {
+      "SessionsPerWeek": 0.18766083134355757,
+      "AvgSessionDurationMinutes": 0.14560155638588504,
+      "AchievementsUnlocked": 0.016860746063800294,
+      "PlayerLevel": 0.01582901891801495,
+      "PlayTimeHours": 0.005459573656682871,
+      "Age": 0.004959757160998796,
+      "InGamePurchases": 0.0024599919029799164,
+      "GameDifficulty_Medium": 0.002308798031948952,
+      "GameDifficulty_Easy": 0.0021704894729322613,
+      "GameGenre_RPG": 0.002078811673479097
+    },
+    "dt_importance": {
+      "SessionsPerWeek": 0.6395377625903579,
+      "AvgSessionDurationMinutes": 0.34007378842544106,
+      "AchievementsUnlocked": 0.01049339336144304,
+      "PlayerLevel": 0.009275374463831207,
+      "PlayTimeHours": 0.0003418576933990949,
+      "Age": 0.0001684851437926498,
+      "InGamePurchases": 0.00010933832173518727,
+      "Gender_Female": 0.0,
+      "Gender_Male": 0.0,
+      "Location_Asia": 0.0
+    }
+  }
+}
