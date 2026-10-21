@@ -401,6 +401,21 @@ with t6:
                     pass
             st.dataframe(pd.DataFrame(counts), width="stretch", hide_index=True)
 
+            st.markdown("**Tables & columns** — pick a table to see its schema")
+            insp = sa_inspect(engine)
+            tsel = st.selectbox("Table", tables, key="schema_table")
+            schema = pd.DataFrame([{"column": c["name"], "type": str(c["type"])}
+                                   for c in insp.get_columns(tsel)])
+            c_schema, c_prev = st.columns([1, 1.5], gap="large")
+            c_schema.dataframe(schema, width="stretch", hide_index=True,
+                               height=min(360, 40 + 35 * len(schema)))
+            try:
+                prev = pd.read_sql(f'SELECT * FROM "{tsel}" LIMIT 5', engine)
+                c_prev.caption("First 5 rows")
+                c_prev.dataframe(prev, width="stretch", hide_index=True)
+            except Exception:
+                pass
+
             # Mixed-case columns from the dataset must be double-quoted so they
             # work on PostgreSQL (which lowercases unquoted identifiers) as well
             # as SQLite; 2-arg ROUND needs a numeric cast on PostgreSQL.
