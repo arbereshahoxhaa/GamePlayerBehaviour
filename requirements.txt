@@ -4,3 +4,5 @@ scikit-learn
 shap
 matplotlib
 streamlit
+plotly
+joblib
