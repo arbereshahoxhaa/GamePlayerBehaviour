@@ -6,3 +6,5 @@ matplotlib
 streamlit
 plotly
 joblib
+sqlalchemy
+psycopg2-binary

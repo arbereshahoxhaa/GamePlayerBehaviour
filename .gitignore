@@ -4,3 +4,5 @@
 .env
 # Regenerable trained models (run scripts/01_train.py)
 results/models/
+# Local SQLite database (regenerate with scripts/05_load_db.py)
+results/gamexai.db

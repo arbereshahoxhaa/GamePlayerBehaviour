@@ -45,6 +45,8 @@ pip install -r requirements.txt
 python scripts/01_train.py              # trains, persists models + figures
 python scripts/02_explain.py            # sample narratives
 python scripts/03_faithfulness_eval.py --n 60   # faithfulness study
+python scripts/04_external_validation.py # transfer test on a 2nd dataset
+python scripts/05_load_db.py            # persist everything to SQL (optional)
 streamlit run app.py                    # dashboard
 ```
 
@@ -64,6 +66,24 @@ To use local Ollama instead, just leave `.env` out and run:
 ollama serve
 ollama pull llama3.2
 ```
+
+## Database (optional)
+All pipeline outputs can be persisted to SQL via an engine-agnostic SQLAlchemy
+layer. Set `DATABASE_URL` in `.env` for **PostgreSQL** (the database is created
+automatically); if it's unset or unreachable, a local **SQLite** file
+(`results/gamexai.db`) is used so nothing breaks.
+
+```bash
+# .env
+DATABASE_URL=postgresql+psycopg2://postgres:YOUR_PASSWORD@localhost:5432/gamexai
+
+python scripts/05_load_db.py     # creates + populates all tables
+```
+Tables: `players` (both datasets), `predictions`, `shap_contributions`,
+`model_metrics`, `feature_importance`, `faithfulness`, `external_validation`.
+Browse them in **pgAdmin**, **DBeaver**, or **SSMS**, or in the app's **Database**
+tab (runs live SQL queries). Connect a GUI client to `localhost:5432`, database
+`gamexai`, user `postgres`.
 
 ## Results (held-out test set)
 | Model | Accuracy | F1-macro | 5-fold CV F1 |

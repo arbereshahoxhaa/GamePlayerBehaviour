@@ -10,11 +10,12 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 from sklearn.metrics import confusion_matrix
+from sqlalchemy import inspect as sa_inspect
 
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from gamexai import agents, config as C, data, models, viz  # noqa: E402
+from gamexai import agents, config as C, data, db, models, viz  # noqa: E402
 from gamexai.llm import LLMClient  # noqa: E402
 from gamexai.xai import LocalExplainer  # noqa: E402
 
@@ -67,6 +68,11 @@ def get_client():
     return LLMClient()
 
 
+@st.cache_resource
+def get_db_engine():
+    return db.get_engine()
+
+
 @st.cache_data
 def get_cm(name):
     ds = get_dataset()
@@ -96,9 +102,9 @@ if faith:
 else:
     k[3].metric("Guardrail", "run study")
 
-t1, t2, t3, t4, t5 = st.tabs(
+t1, t2, t3, t4, t5, t6 = st.tabs(
     ["  Overview  ", "  Models  ", "  What drives engagement  ",
-     "  Explain a player  ", "  Faithfulness study  "])
+     "  Explain a player  ", "  Faithfulness study  ", "  Database  "])
 
 # --------------------------------------------------------------- Overview
 with t1:
@@ -362,8 +368,58 @@ with t5:
         with st.expander("Example explanations"):
             for ex in faith.get("examples", [])[:3]:
                 st.markdown(f"**Player {ex['player']} — predicted {ex['predicted']}**")
-                for s, text in ex["narratives"].items():
+                for s, txt in ex["narratives"].items():
                     st.markdown(f"*{s}* · faithfulness "
                                 f"{ex['scores'][s]['faithfulness']:.2f}")
-                    st.write(text)
+                    st.write(txt)
                 st.divider()
+
+# --------------------------------------------------------------- Database
+with t6:
+    st.subheader("SQL database")
+    try:
+        engine, label = get_db_engine()
+    except Exception as e:
+        engine, label = None, None
+        st.error(f"Could not open a database: {e}")
+    if engine is not None:
+        st.caption(f"Connected to **{label}**. Every pipeline output is stored here "
+                   "and can be browsed in pgAdmin / DBeaver / SSMS. Set `DATABASE_URL` "
+                   "in `.env` for PostgreSQL; otherwise a local SQLite file is used.")
+        tables = sorted(sa_inspect(engine).get_table_names())
+        if not tables:
+            st.warning("No tables yet — run `python scripts/05_load_db.py` to populate "
+                       "the database.")
+        else:
+            counts = []
+            for t in tables:
+                try:
+                    n = pd.read_sql(f'SELECT COUNT(*) AS n FROM "{t}"', engine)["n"][0]
+                    counts.append({"table": t, "rows": int(n)})
+                except Exception:
+                    pass
+            st.dataframe(pd.DataFrame(counts), width="stretch", hide_index=True)
+
+            queries = {
+                "Players by dataset":
+                    "SELECT dataset, COUNT(*) AS players FROM players GROUP BY dataset",
+                "Avg behaviour by engagement (dataset 1)":
+                    "SELECT EngagementLevel, ROUND(AVG(SessionsPerWeek),1) AS avg_sessions,"
+                    " ROUND(AVG(AvgSessionDurationMinutes),1) AS avg_duration"
+                    " FROM players WHERE dataset='kaggle_40k' GROUP BY EngagementLevel",
+                "Model metrics": "SELECT * FROM model_metrics",
+                "Faithfulness by backend":
+                    "SELECT backend, strategy, faithfulness, hallucination_rate"
+                    " FROM faithfulness ORDER BY backend, strategy",
+                "External validation": "SELECT * FROM external_validation",
+            }
+            avail = {k: q for k, q in queries.items()
+                     if q.split(" FROM ")[1].split()[0].strip('"') in tables}
+            if avail:
+                pick = st.selectbox("Example query", list(avail))
+                st.code(avail[pick], language="sql")
+                try:
+                    st.dataframe(pd.read_sql(avail[pick], engine), width="stretch",
+                                 hide_index=True)
+                except Exception as e:
+                    st.warning(f"Query failed: {e}")
