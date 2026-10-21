@@ -1,26 +1,27 @@
-"""Backend-agnostic LLM client: Ollama (local, free) or OpenAI, with graceful
-degradation to a deterministic template when no LLM is reachable.
+"""Backend-agnostic LLM client with a fallback chain.
 
-The template path matters for two reasons: (1) the live conference demo never
-breaks even with no network/GPU, and (2) it serves as the *faithful baseline*
-in the faithfulness experiment.
+Order of preference: OpenAI (if OPENAI_API_KEY is set) -> Ollama (if reachable)
+-> deterministic template. Each `chat` call walks the chain and uses the first
+backend that succeeds, so an OpenAI hiccup mid-run silently drops to Ollama, and
+a fully offline machine still works via the template.
+
+Set the key in a gitignored `.env` (see .env.example) or the environment.
 """
 import json
 import os
-import urllib.error
 import urllib.request
 
 from . import config as C
 
 
 class LLMClient:
-    def __init__(self, backend="auto", model=None, timeout=90):
+    def __init__(self, prefer="auto", model=None, timeout=90):
         self.timeout = timeout
-        self.backend = backend if backend != "auto" else self._autodetect()
-        self.model = model or (C.OPENAI_MODEL if self.backend == "openai"
-                               else C.OLLAMA_MODEL)
+        self.openai_model = os.getenv("OPENAI_MODEL", C.OPENAI_MODEL)
+        self.ollama_model = model or os.getenv("OLLAMA_MODEL", C.OLLAMA_MODEL)
+        self.chain = self._build_chain(prefer)
 
-    # ---- detection ------------------------------------------------------
+    # ---- backend discovery ---------------------------------------------
     @staticmethod
     def _ollama_up():
         try:
@@ -29,31 +30,47 @@ class LLMClient:
         except Exception:
             return False
 
-    def _autodetect(self):
+    def _build_chain(self, prefer):
+        chain = []
         if os.getenv("OPENAI_API_KEY"):
-            return "openai"
+            chain.append("openai")
         if self._ollama_up():
-            return "ollama"
-        return "template"
+            chain.append("ollama")
+        if prefer in ("openai", "ollama") and prefer in chain:   # move to front
+            chain = [prefer] + [b for b in chain if b != prefer]
+        return chain
 
     @property
     def available(self):
-        return self.backend in ("ollama", "openai")
+        return bool(self.chain)
+
+    @property
+    def primary(self):
+        return self.chain[0] if self.chain else "template"
 
     def describe(self):
-        return f"{self.backend}:{self.model}" if self.available else "template (no LLM)"
+        if not self.chain:
+            return "template (no LLM)"
+        tag = {"openai": self.openai_model, "ollama": self.ollama_model}
+        return " -> ".join(f"{b}:{tag[b]}" for b in self.chain) + " -> template"
 
     # ---- generation -----------------------------------------------------
     def chat(self, system, user, temperature=0.2):
-        if self.backend == "ollama":
-            return self._ollama(system, user, temperature)
-        if self.backend == "openai":
-            return self._openai(system, user, temperature)
-        raise RuntimeError("No LLM backend available; use a template instead.")
+        errors = []
+        for backend in self.chain:
+            try:
+                return self._call(backend, system, user, temperature)
+            except Exception as e:                      # fall through to next
+                errors.append(f"{backend}: {e}")
+        raise RuntimeError("all LLM backends failed: " + "; ".join(errors))
+
+    def _call(self, backend, system, user, temperature):
+        return (self._openai if backend == "openai" else self._ollama)(
+            system, user, temperature)
 
     def _ollama(self, system, user, temperature):
         body = json.dumps({
-            "model": self.model, "stream": False,
+            "model": self.ollama_model, "stream": False,
             "options": {"temperature": temperature},
             "messages": [{"role": "system", "content": system},
                          {"role": "user", "content": user}],
@@ -65,7 +82,7 @@ class LLMClient:
 
     def _openai(self, system, user, temperature):
         body = json.dumps({
-            "model": self.model, "temperature": temperature,
+            "model": self.openai_model, "temperature": temperature,
             "messages": [{"role": "system", "content": system},
                          {"role": "user", "content": user}],
         }).encode()

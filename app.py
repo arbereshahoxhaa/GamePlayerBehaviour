@@ -78,11 +78,12 @@ st.caption("Machine-learning models predict player engagement; SHAP explains the
            "a multi-agent LLM pipeline turns that into plain language — and audits itself.")
 
 best = max(res["models"], key=lambda m: res["models"][m]["f1_macro"])
-top_driver = C.readable(next(iter(res["xai"]["shap_mean_abs"])))
+top_feat, top_val = next(iter(res["xai"]["shap_mean_abs"].items()))
 k = st.columns(4)
 k[0].metric("Players analysed", f"{res['dataset']['rows_used']:,}")
 k[1].metric("Best model (F1)", f"{res['models'][best]['f1_macro']:.2f}", best)
-k[2].metric("Top driver", top_driver)
+k[2].metric("Top driver", C.readable(top_feat),
+            f"{top_val:.2f} mean |SHAP|", delta_color="off")
 if faith:
     g = faith["strategies"].get("llm+guardrail", {})
     k[3].metric("Guardrail hallucination", f"{g['hallucination_rate']['mean']:.0%}",

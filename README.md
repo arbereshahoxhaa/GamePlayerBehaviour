@@ -49,9 +49,17 @@ streamlit run app.py                    # dashboard
 ```
 
 ### LLM backend
-Uses a local [Ollama](https://ollama.com) model if reachable (default
-`llama3.2`), else OpenAI if `OPENAI_API_KEY` is set, else a deterministic
-template so nothing breaks offline.
+The client tries a fallback chain and uses the first that works:
+**OpenAI** (if a key is set) → **Ollama** (local, free) → **deterministic
+template** (always works offline). A failed OpenAI call mid-run drops to Ollama
+automatically.
+
+To use OpenAI (better/faster narratives), copy `.env.example` to `.env` and add
+your key — `.env` is gitignored:
+```bash
+cp .env.example .env    # then edit OPENAI_API_KEY=sk-...
+```
+To use local Ollama instead, just leave `.env` out and run:
 ```bash
 ollama serve
 ollama pull llama3.2

@@ -1,4 +1,6 @@
 ﻿__pycache__/
 *.pyc
+# Secrets - never commit the real key
+.env
 # Regenerable trained models (run scripts/01_train.py)
 results/models/

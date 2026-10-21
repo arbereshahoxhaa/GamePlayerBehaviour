@@ -4,9 +4,27 @@ The feature aliases are the bridge between the ML world (column names) and the
 natural-language world (what an LLM narrative actually writes). They are used by
 `faithfulness.py` to detect which features a generated explanation refers to.
 """
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def _load_dotenv():
+    """Minimal dependency-free .env loader: KEY=VALUE lines into the environment
+    (never overriding variables already set in the shell)."""
+    env = ROOT / ".env"
+    if not env.exists():
+        return
+    for line in env.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, val = line.split("=", 1)
+        os.environ.setdefault(key.strip(), val.strip().strip('"').strip("'"))
+
+
+_load_dotenv()
 DATA = ROOT / "data" / "online_gaming_behavior_dataset.csv"
 RESULTS = ROOT / "results"
 FIGURES = RESULTS / "figures"
