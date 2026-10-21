@@ -420,20 +420,17 @@ with t6:
             }
             avail = {k: q for k, q in queries.items()
                      if q.split(" FROM ")[1].split()[0].strip('"') in tables}
+            st.markdown("**Query the database** — pick an example to start, then "
+                        "edit freely and run. Read-only `SELECT` / `WITH`; quote "
+                        "mixed-case columns, e.g. `\"EngagementLevel\"`.")
             if avail:
-                pick = st.selectbox("Example query", list(avail))
-                st.code(avail[pick], language="sql")
-                try:
-                    st.dataframe(pd.read_sql(avail[pick], engine), width="stretch",
-                                 hide_index=True)
-                except Exception as e:
-                    st.warning(f"Query failed: {e}")
-
-            st.markdown("**Run your own query** — read-only `SELECT` / `WITH` "
-                        "(quote mixed-case columns, e.g. `\"EngagementLevel\"`)")
-            user_sql = st.text_area(
-                "SQL", value='SELECT * FROM model_metrics',
-                height=90, label_visibility="collapsed")
+                choice = st.selectbox("Start from an example", list(avail))
+                if st.session_state.get("_ex_choice") != choice:   # load on change
+                    st.session_state["sql_editor"] = avail[choice]
+                    st.session_state["_ex_choice"] = choice
+            st.session_state.setdefault("sql_editor", "SELECT * FROM model_metrics")
+            user_sql = st.text_area("SQL", key="sql_editor", height=120,
+                                    label_visibility="collapsed")
             if st.button("Run query", type="primary"):
                 low = user_sql.strip().rstrip(";").lower()
                 starts = low.startswith("select") or low.startswith("with")
