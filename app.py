@@ -127,6 +127,25 @@ with t1:
         st.plotly_chart(fig, width="stretch")
     st.caption("Sessions per week and average session duration separate the classes "
                "cleanly; age and play-time barely move the needle.")
+
+    st.subheader("Engagement by player category")
+    cat = st.selectbox("Category", ["GameGenre", "GameDifficulty", "Gender", "Location"],
+                       format_func=C.readable)
+    share = (pd.crosstab(ds.raw[cat], ds.raw[C.TARGET], normalize="index")
+             .reindex(columns=CLASSES) * 100)
+    fig = go.Figure()
+    for cl in CLASSES:
+        fig.add_bar(name=cl, x=share.index.tolist(), y=share[cl].round(1).tolist(),
+                    marker_color=viz.CLASS_COLORS[cl],
+                    hovertemplate="%{x} · " + cl + ": %{y:.1f}%<extra></extra>")
+    fig.update_layout(barmode="stack")
+    viz.style(fig, height=320)
+    fig.update_layout(yaxis_title="% of players", yaxis_range=[0, 100])
+    st.plotly_chart(fig, width="stretch")
+    st.caption("The engagement split stays almost identical across genres, difficulty, "
+               "gender and location — these attributes carry little signal, which matches "
+               "the SHAP ranking.")
+
     with st.expander("Browse raw data"):
         st.dataframe(ds.raw.head(100), width="stretch")
 
@@ -192,6 +211,9 @@ with t4:
     local = get_explainer()
     st.caption(f"Backend: **{client.describe()}** — build a player, see why the model "
                "predicts what it does, then generate a plain-language explanation.")
+    cats = {b: sorted(c.split("_", 1)[1] for c in ds.feature_names
+                      if c.startswith(b + "_"))
+            for b in ["GameGenre", "GameDifficulty", "Gender", "Location"]}
     with st.container():
         c = st.columns(3)
         sessions = c[0].slider("Sessions per week", 0, 19, 9)
@@ -201,15 +223,21 @@ with t4:
         level = c[0].slider("Player level", 1, 99, 50)
         hours = c[1].slider("Play time (hours)", 0.0, 24.0, 12.0)
         age = c[2].slider("Age", 15, 49, 32)
+        c = st.columns(4)
+        genre = c[0].selectbox("Game genre", cats["GameGenre"])
+        diff = c[1].selectbox("Difficulty", cats["GameDifficulty"])
+        gender = c[2].selectbox("Gender", cats["Gender"])
+        loc = c[3].selectbox("Location", cats["Location"])
+        purch = c[0].checkbox("Made in-game purchases")
 
     row = dict.fromkeys(ds.feature_names, 0)
     row.update(Age=age, PlayTimeHours=hours, SessionsPerWeek=sessions,
                AvgSessionDurationMinutes=dur, PlayerLevel=level,
-               AchievementsUnlocked=ach, InGamePurchases=0)
-    for col_, dflt in [("Gender_Male", 1), ("Location_USA", 1),
-                       ("GameGenre_Strategy", 1), ("GameDifficulty_Medium", 1)]:
+               AchievementsUnlocked=ach, InGamePurchases=int(purch))
+    for col_ in [f"GameGenre_{genre}", f"GameDifficulty_{diff}",
+                 f"Gender_{gender}", f"Location_{loc}"]:
         if col_ in row:
-            row[col_] = dflt
+            row[col_] = 1
     ev = local.explain_row(pd.Series(row))
 
     left, right = st.columns([1, 1.25], gap="large")
