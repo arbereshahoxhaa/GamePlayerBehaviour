@@ -1,0 +1,31 @@
+{
+  "cleaning": {
+    "rows_raw": 10037,
+    "dropped_missing_target": 3,
+    "implausible_age_fixed": 73,
+    "missing_cells_before": 1499,
+    "rows_clean": 10034
+  },
+  "ext_class_counts": {
+    "Medium": 6005,
+    "Low": 3049,
+    "High": 980
+  },
+  "models": {
+    "Logistic Regression": {
+      "internal_f1_macro": 0.8194189189752636,
+      "external_accuracy": 0.47428742276260716,
+      "external_f1_macro": 0.45319966142452833
+    },
+    "Decision Tree": {
+      "internal_f1_macro": 0.8695726093560335,
+      "external_accuracy": 0.6263703408411401,
+      "external_f1_macro": 0.46230380812868477
+    },
+    "Random Forest": {
+      "internal_f1_macro": 0.8977820781749798,
+      "external_accuracy": 0.6331472991827786,
+      "external_f1_macro": 0.4873212061987033
+    }
+  }
+}

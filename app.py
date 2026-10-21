@@ -42,6 +42,8 @@ faith = (json.loads((C.RESULTS / "faithfulness.json").read_text())
 # Per-backend study files (e.g. faithfulness_openai.json) for the model comparison.
 faith_by_backend = {p.stem.split("_", 1)[1]: json.loads(p.read_text())
                     for p in sorted(C.RESULTS.glob("faithfulness_*.json"))}
+extval = (json.loads((C.RESULTS / "external_validation.json").read_text())
+          if (C.RESULTS / "external_validation.json").exists() else None)
 
 
 @st.cache_resource
@@ -180,6 +182,32 @@ with t2:
     fig.update_xaxes(showgrid=False)
     fig.update_yaxes(showgrid=False)
     st.plotly_chart(fig, width="stretch")
+
+    if extval:
+        st.subheader("Does it generalise? (external dataset)")
+        em = extval["models"]
+        names2 = list(em)
+        fig = go.Figure()
+        fig.add_bar(name="Dataset 1 (test)", x=names2,
+                    y=[em[n]["internal_f1_macro"] for n in names2], marker_color=viz.BLUE,
+                    text=[f"{em[n]['internal_f1_macro']:.2f}" for n in names2],
+                    textposition="outside")
+        fig.add_bar(name="Dataset 2 (external)", x=names2,
+                    y=[em[n]["external_f1_macro"] for n in names2], marker_color=viz.ORANGE,
+                    text=[f"{em[n]['external_f1_macro']:.2f}" for n in names2],
+                    textposition="outside")
+        viz.style(fig, height=360)
+        fig.update_layout(barmode="group", yaxis_title="F1-macro", yaxis_range=[0, 1])
+        st.plotly_chart(fig, width="stretch")
+        cl = extval["cleaning"]
+        st.caption(
+            f"Tested on an **independent, differently-generated** dataset "
+            f"({cl['rows_clean']:,} rows after cleaning {cl['missing_cells_before']:,} "
+            f"missing cells and {cl['implausible_age_fixed']} impossible ages). "
+            "F1 drops from ~0.90 to ~0.49: the high in-sample score is partly an "
+            "artefact of dataset 1's synthetic label. Random Forest stays the most "
+            "robust, and still beats the majority-class baseline — the sessions/duration "
+            "signal partially generalises, the exact decision boundary does not.")
 
 # --------------------------------------------------------------- Drivers / XAI
 with t3:

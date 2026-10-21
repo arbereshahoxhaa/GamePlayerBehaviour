@@ -104,8 +104,28 @@ Findings:
   the LLM critic in both regimes. Takeaway: ground the fix in the SHAP evidence,
   don't throw a second (or bigger) LLM at it.
 
+## External validation (transfer to a second dataset)
+The dataset-1 models were tested, unchanged, on an **independent, differently
+generated** dataset (v3ngen, ~10k rows, real missing values, different class
+balance) after cleaning:
+
+| model | Dataset 1 F1 | Dataset 2 F1 | Dataset 2 acc |
+|-------|:-----------:|:-----------:|:------------:|
+| Logistic Regression | 0.819 | 0.453 | 0.474 |
+| Decision Tree | 0.870 | 0.462 | 0.626 |
+| Random Forest | 0.898 | **0.487** | **0.633** |
+
+F1-macro drops from ~0.90 to ~0.49: the high in-sample score is **partly an
+artefact of dataset 1's synthetic label** (nearly a function of two features).
+Random Forest remains the most robust and stays above the majority-class
+baseline (F1 ≈ 0.25), so the *sessions/duration signal partially generalises*
+while the exact decision boundary does not — a key lesson about trusting
+single-dataset accuracy.
+
 ## Limitations
-- The dataset appears synthetic (very clean separability, two dominant features);
-  conclusions are about the modelling/XAI method, not real player psychology.
+- Both datasets are synthetic, so results concern the modelling/XAI method and
+  robustness to distribution shift, not real player psychology.
 - Faithfulness detection uses transparent alias-based keyword matching, not
   semantic parsing — a deliberate, stated simplification.
+- The two datasets share column names but some differ in scale/meaning (e.g.
+  PlayTimeHours), which is itself part of the transfer finding.
