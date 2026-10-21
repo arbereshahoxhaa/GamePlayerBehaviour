@@ -30,8 +30,9 @@ st.markdown("""
 .block-container {padding-top: 2.2rem; padding-bottom: 2rem; max-width: 1150px;}
 h1 {font-size: 1.7rem !important;}
 .stTabs [data-baseweb="tab"] {font-size: 0.95rem; padding: 6px 14px;}
-[data-testid="stMetric"] {background: #f4f6f9; border-radius: 12px; padding: 14px 16px;}
-[data-testid="stMetricLabel"] p {font-size: 0.8rem; color: #52514e;}
+[data-testid="stMetric"] {background: #1f1f1e; border: 1px solid #2c2c2a;
+  border-radius: 12px; padding: 14px 16px;}
+[data-testid="stMetricLabel"] p {font-size: 0.8rem; color: #c3c2b7;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -116,7 +117,8 @@ with t1:
         fig = go.Figure(go.Pie(
             labels=CLASSES, values=counts.values, hole=.58, sort=False,
             marker=dict(colors=[viz.CLASS_COLORS[c] for c in CLASSES],
-                        line=dict(color="#fff", width=2)),
+                        line=dict(color="#141413", width=2)),
+            textfont=dict(color=viz.INK),
             textinfo="label+percent",
             hovertemplate="%{label}: %{value:,} players<extra></extra>"))
         viz.style(fig, height=330, legend=False)
@@ -181,7 +183,7 @@ with t2:
     cm = get_cm(pick)
     fig = go.Figure(go.Heatmap(
         z=cm, x=CLASSES, y=CLASSES, colorscale=viz.SEQ_BLUE, showscale=False,
-        text=cm, texttemplate="%{text}", textfont=dict(size=15),
+        text=cm, texttemplate="%{text}", textfont=dict(size=15, color=viz.INK),
         hovertemplate="true %{y} → predicted %{x}: %{z}<extra></extra>"))
     viz.style(fig, height=360, legend=False)
     fig.update_layout(xaxis_title="predicted", yaxis_title="actual",

@@ -1,24 +1,24 @@
-"""Shared Plotly styling for the dashboard.
+"""Shared Plotly styling for the dashboard (dark theme).
 
-Colours come from the validated data-viz reference palette (categorical slots in
-fixed order; a sequential blue ramp for ordered magnitude; a blue<->red diverging
-pair for signed SHAP). Engagement Low<Medium<High is *ordered*, so it uses the
-ordinal blue ramp, not categorical hues.
+Colours come from the validated data-viz reference palette, dark-surface steps
+(categorical slots in fixed order; an ordinal blue ramp for ordered engagement;
+a blue<->red diverging pair for signed SHAP). Chart backgrounds are transparent
+so they sit on the Streamlit dark surface.
 """
 import plotly.graph_objects as go
 
-# Categorical slots 1-5 (light surface), fixed order.
-CAT = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"]
+# Categorical slots 1-5, dark-surface steps, fixed order.
+CAT = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181"]
 BLUE, ORANGE, AQUA, YELLOW = CAT[0], CAT[1], CAT[2], CAT[3]
-GOOD, CRITICAL = "#0ca30c", "#d03b3b"            # status (reserved)
+GOOD, CRITICAL = "#0ca30c", "#e06666"            # status (reserved)
 
-# Ordered engagement classes -> ordinal blue (light->dark = low->high).
-CLASS_COLORS = {"Low": "#86b6ef", "Medium": "#3987e5", "High": "#184f95"}
-SEQ_BLUE = [[0, "#eef5fe"], [0.5, "#5598e7"], [1, "#184f95"]]
-DIVERGING = {"pos": BLUE, "neg": CRITICAL}       # SHAP supports / opposes
+# Ordered engagement classes -> ordinal blue, bright enough for a dark surface.
+CLASS_COLORS = {"Low": "#9ec5f4", "Medium": "#5598e7", "High": "#2a78d6"}
+SEQ_BLUE = [[0, "#1b2740"], [1, "#2f7fda"]]       # heatmap, dark -> bright blue
+DIVERGING = {"pos": BLUE, "neg": CRITICAL}        # SHAP supports / opposes
 
-INK, INK2, MUTED = "#0b0b0b", "#52514e", "#898781"
-GRID, AXIS, SURF = "#e1e0d9", "#c3c2b7", "#fcfcfb"
+INK, INK2, MUTED = "#f0efec", "#c3c2b7", "#8f8d87"
+GRID, AXIS, SURF = "#2c2c2a", "#44443f", "#1a1a19"
 FONT = 'system-ui, -apple-system, "Segoe UI", sans-serif'
 
 
@@ -27,11 +27,12 @@ def style(fig, height=360, legend=True, margin_t=40):
         font=dict(family=FONT, color=INK2, size=13),
         title=dict(font=dict(color=INK, size=16), x=0, xanchor="left"),
         margin=dict(l=10, r=16, t=margin_t, b=10),
-        height=height, paper_bgcolor=SURF, plot_bgcolor=SURF,
-        hoverlabel=dict(font_size=13, font_family=FONT, bgcolor="white"),
+        height=height, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        hoverlabel=dict(font_size=13, font_family=FONT, bgcolor="#26261f",
+                        font_color=INK, bordercolor=AXIS),
         showlegend=legend,
         legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0,
-                    font=dict(size=12), title_text=""),
+                    font=dict(size=12, color=INK2), title_text=""),
         bargap=0.28,
     )
     fig.update_xaxes(showgrid=False, color=MUTED, linecolor=AXIS, ticks="outside",
