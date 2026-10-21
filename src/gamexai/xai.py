@@ -86,15 +86,19 @@ class PlayerEvidence:
     def top_features(self):
         return [c["feature"] for c in self.contributions]
 
-    def as_prompt_block(self, k=5) -> str:
+    def as_prompt_block(self, k=None) -> str:
+        items = self.contributions if k is None else self.contributions[:k]
         lines = [f"Predicted engagement: {self.predicted_class} "
                  f"(confidence {self.probabilities[self.predicted_class]:.0%}).",
                  "Top SHAP contributions toward this prediction "
                  "(these are the ONLY features you may cite):"]
-        for c in self.contributions[:k]:
+        for c in items:
             lines.append(f"  - {c['label']} = {c['value']} "
                          f"({c['effect']} this class, SHAP {c['shap']:+.3f})")
         return "\n".join(lines)
+
+    def allowed_labels(self) -> list:
+        return [c["label"] for c in self.contributions]
 
 
 class LocalExplainer:
@@ -105,7 +109,7 @@ class LocalExplainer:
         self.names = feature_names
         self.explainer = shap.TreeExplainer(rf)
 
-    def explain_row(self, row: pd.Series, k=6) -> PlayerEvidence:
+    def explain_row(self, row: pd.Series, k=5) -> PlayerEvidence:
         x = row[self.names].to_frame().T
         proba = self.rf.predict_proba(x)[0]
         ci = int(proba.argmax())

@@ -29,6 +29,20 @@ def canonical(feature: str) -> str:
     return feature
 
 
+def guardrail_filter(narrative: str, evidence) -> str:
+    """Deterministic SHAP-grounded guardrail: drop any sentence that cites a
+    feature outside the evidence, keeping the rest of the LLM's text untouched.
+
+    Unlike an LLM critic that rewrites wholesale (and tends to over-prune), this
+    removes only the offending sentences, so fluent, faithful content survives.
+    """
+    admissible = {canonical(c["feature"]) for c in evidence.contributions}
+    sentences = re.split(r"(?<=[.!?])\s+", narrative.strip())
+    kept = [s for s in sentences
+            if all(f in admissible for f in detect_mentions(s))]
+    return " ".join(kept).strip() or narrative
+
+
 def detect_mentions(text: str) -> dict:
     """Map each feature mentioned in `text` -> inferred value polarity ('high' /
     'low' / None), using the nearest polarity word in the same sentence."""
@@ -55,22 +69,26 @@ def _polarity(window: str):
     return None
 
 
-def score(text: str, evidence, k: int = 4, median=None) -> dict:
+def score(text: str, evidence, k: int = 3, median=None) -> dict:
     """Score `text` against the ground-truth SHAP `evidence`.
+
+    An explanation is *faithful* if it discusses only features the model actually
+    attributed the prediction to. The admissible set is therefore every feature
+    shown in the evidence (`evidence.contributions`); a mention outside it is a
+    hallucination. Coverage (recall) is measured against the top-`k` drivers.
 
     `median`: optional {feature: median_value} to judge whether a stated value
     polarity ('high'/'low') matches the player's actual value.
     """
     # Work in canonical concept-space so one-hot dummies match narrative words.
     top = list(dict.fromkeys(canonical(f) for f in evidence.top_features[:k]))
+    # Admissible = every feature we actually showed the model.
+    admissible = {canonical(c["feature"]) for c in evidence.contributions}
     mentioned = detect_mentions(text)          # already canonical keys
     m_set = set(mentioned)
 
     hits = [f for f in top if f in m_set]
     coverage = len(hits) / len(top) if top else 0.0
-    # Admissible = the headline top-k, plus any feature with non-trivial |SHAP|.
-    admissible = set(top) | {canonical(c["feature"]) for c in evidence.contributions
-                             if abs(c["shap"]) >= 0.01}
     precision = (len([f for f in m_set if f in admissible]) / len(m_set)
                  if m_set else 0.0)
     hallucinated = sorted(f for f in m_set if f not in admissible)

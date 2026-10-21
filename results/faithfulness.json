@@ -1,0 +1,463 @@
+{
+  "backend": "ollama:llama3.2:latest",
+  "n_players": 60,
+  "strategies": {
+    "template": {
+      "faithfulness": {
+        "mean": 0.9519000000000003,
+        "std": 0.05500445436507847
+      },
+      "coverage": {
+        "mean": 0.8557,
+        "std": 0.1650133630952354
+      },
+      "precision": {
+        "mean": 1.0,
+        "std": 0.0
+      },
+      "hallucination_rate": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "avg_words": 45.583333333333336,
+      "hallucinated_features": {}
+    },
+    "llm": {
+      "faithfulness": {
+        "mean": 0.8783333333333334,
+        "std": 0.1292004471956485
+      },
+      "coverage": {
+        "mean": 0.8889833333333333,
+        "std": 0.16839482292781116
+      },
+      "precision": {
+        "mean": 0.9591333333333333,
+        "std": 0.0865668271080531
+      },
+      "hallucination_rate": {
+        "mean": 0.04086666666666667,
+        "std": 0.0865668271080531
+      },
+      "avg_words": 110.03333333333333,
+      "hallucinated_features": {
+        "InGamePurchases": 11,
+        "AchievementsUnlocked": 1,
+        "GameDifficulty": 1
+      }
+    },
+    "llm+critic": {
+      "faithfulness": {
+        "mean": 0.8937666666666666,
+        "std": 0.11641568718270842
+      },
+      "coverage": {
+        "mean": 0.88345,
+        "std": 0.15883087703592144
+      },
+      "precision": {
+        "mean": 0.9699500000000001,
+        "std": 0.07924464755847341
+      },
+      "hallucination_rate": {
+        "mean": 0.03005,
+        "std": 0.07924464755847342
+      },
+      "avg_words": 92.7,
+      "hallucinated_features": {
+        "InGamePurchases": 7,
+        "AchievementsUnlocked": 1,
+        "GameDifficulty": 1
+      }
+    },
+    "llm+guardrail": {
+      "faithfulness": {
+        "mean": 0.9049333333333334,
+        "std": 0.11424605998555147
+      },
+      "coverage": {
+        "mean": 0.8611833333333332,
+        "std": 0.20446943468944745
+      },
+      "precision": {
+        "mean": 1.0,
+        "std": 0.0
+      },
+      "hallucination_rate": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "avg_words": 102.95,
+      "hallucinated_features": {}
+    }
+  },
+  "examples": [
+    {
+      "player": 13565,
+      "predicted": "Medium",
+      "narratives": {
+        "template": "This player is predicted to have Medium engagement (92% confidence). The main drivers of this prediction are sessions per week (9.0) and average session duration (103.0). Recommendation: focus on sessions per week to influence this player's engagement.",
+        "llm": "Based on the SHAP values, the model predicts that the player's engagement level is medium because they have a moderate number of sessions per week (9.0), which is positively valued by the model (+0.276). Additionally, their average session duration is around 103 minutes, also supporting a medium engagement level (+0.089). The player has unlocked 37 achievements, which is a relatively small number, but still contributes to the medium engagement prediction (+0.020). The player's age and play time are also factors, but to a lesser extent.\n\nBased on this analysis, I recommend increasing the game's weekly rewards for players who complete a certain number of sessions, such as 5 or 7 sessions, to encourage players to maintain their engagement level.",
+        "llm+critic": "Predicted engagement: Medium (confidence 92%).\nTop SHAP contributions toward this prediction (these are the ONLY features you may cite):\n  - sessions per week = 9.0 (supports this class, SHAP +0.276)\n  - average session duration = 103.0 (supports this class, SHAP +0.089)\n  - achievements unlocked = 37.0 (supports this class, SHAP +0.020)\nRecommendation: Increase the game's weekly rewards for players who complete a certain number of sessions, such as 5 or 7 sessions, to encourage players to maintain their engagement level, focusing on the positive impact of sessions per week.",
+        "llm+guardrail": "Based on the SHAP values, the model predicts that the player's engagement level is medium because they have a moderate number of sessions per week (9.0), which is positively valued by the model (+0.276). Additionally, their average session duration is around 103 minutes, also supporting a medium engagement level (+0.089). The player has unlocked 37 achievements, which is a relatively small number, but still contributes to the medium engagement prediction (+0.020). The player's age and play time are also factors, but to a lesser extent. Based on this analysis, I recommend increasing the game's weekly rewards for players who complete a certain number of sessions, such as 5 or 7 sessions, to encourage players to maintain their engagement level."
+      },
+      "scores": {
+        "template": {
+          "coverage": 0.667,
+          "precision": 1.0,
+          "hallucination_rate": 0.0,
+          "hallucinated": [],
+          "direction_accuracy": null,
+          "faithfulness": 0.889,
+          "mentioned": [
+            "AvgSessionDurationMinutes",
+            "SessionsPerWeek"
+          ],
+          "top_shap_features": [
+            "SessionsPerWeek",
+            "AvgSessionDurationMinutes",
+            "AchievementsUnlocked"
+          ]
+        },
+        "llm": {
+          "coverage": 1.0,
+          "precision": 1.0,
+          "hallucination_rate": 0.0,
+          "hallucinated": [],
+          "direction_accuracy": null,
+          "faithfulness": 1.0,
+          "mentioned": [
+            "AchievementsUnlocked",
+            "Age",
+            "AvgSessionDurationMinutes",
+            "PlayTimeHours",
+            "SessionsPerWeek"
+          ],
+          "top_shap_features": [
+            "SessionsPerWeek",
+            "AvgSessionDurationMinutes",
+            "AchievementsUnlocked"
+          ]
+        },
+        "llm+critic": {
+          "coverage": 1.0,
+          "precision": 1.0,
+          "hallucination_rate": 0.0,
+          "hallucinated": [],
+          "direction_accuracy": null,
+          "faithfulness": 1.0,
+          "mentioned": [
+            "AchievementsUnlocked",
+            "AvgSessionDurationMinutes",
+            "SessionsPerWeek"
+          ],
+          "top_shap_features": [
+            "SessionsPerWeek",
+            "AvgSessionDurationMinutes",
+            "AchievementsUnlocked"
+          ]
+        },
+        "llm+guardrail": {
+          "coverage": 1.0,
+          "precision": 1.0,
+          "hallucination_rate": 0.0,
+          "hallucinated": [],
+          "direction_accuracy": null,
+          "faithfulness": 1.0,
+          "mentioned": [
+            "AchievementsUnlocked",
+            "Age",
+            "AvgSessionDurationMinutes",
+            "PlayTimeHours",
+            "SessionsPerWeek"
+          ],
+          "top_shap_features": [
+            "SessionsPerWeek",
+            "AvgSessionDurationMinutes",
+            "AchievementsUnlocked"
+          ]
+        }
+      },
+      "critic_issues": "age, play time (hours)"
+    },
+    {
+      "player": 6843,
+      "predicted": "Low",
+      "narratives": {
+        "template": "This player is predicted to have Low engagement (91% confidence). The main drivers of this prediction are average session duration (12.0) and sessions per week (2.0). In contrast, player level (70.0) pushes slightly the other way. Recommendation: focus on average session duration to influence this player's engagement.",
+        "llm": "Based on the SHAP values, the model predicts low engagement because the player's average session duration is relatively short (12.0 minutes), which is a significant contributor to the negative prediction. Additionally, the player only logs in a few times a week (2.0 sessions), which also supports the low engagement prediction. On the other hand, the player has unlocked a moderate number of achievements (15.0), which is a neutral factor in this case. The player's level (70.0) and the game's simulation genre (1.0) also contribute to the negative prediction, but to a lesser extent.\n\nBased on this analysis, I recommend increasing the game's rewards for achievements unlocked, as this feature is the only one that supports the low engagement prediction.",
+        "llm+critic": "Predicted engagement: Low (confidence 91%).\nTop SHAP contributions toward this prediction (these are the ONLY features you may cite):\n  - average session duration = 12.0 (supports this class, SHAP +0.337)\n  - sessions per week = 2.0 (supports this class, SHAP +0.273)\n  - achievements unlocked = 15.0 (supports this class, SHAP +0.047)\nRecommendation: Increase the game's rewards for achievements unlocked to further support the low engagement prediction.",
+        "llm+guardrail": "Based on the SHAP values, the model predicts low engagement because the player's average session duration is relatively short (12.0 minutes), which is a significant contributor to the negative prediction. Additionally, the player only logs in a few times a week (2.0 sessions), which also supports the low engagement prediction. On the other hand, the player has unlocked a moderate number of achievements (15.0), which is a neutral factor in this case. The player's level (70.0) and the game's simulation genre (1.0) also contribute to the negative prediction, but to a lesser extent. Based on this analysis, I recommend increasing the game's rewards for achievements unlocked, as this feature is the only one that supports the low engagement prediction."
+      },
+      "scores": {
+        "template": {
+          "coverage": 0.667,
+          "precision": 1.0,
+          "hallucination_rate": 0.0,
+          "hallucinated": [],
+          "direction_accuracy": null,
+          "faithfulness": 0.889,
+          "mentioned": [
+            "AvgSessionDurationMinutes",
+            "PlayerLevel",
+            "SessionsPerWeek"
+          ],
+          "top_shap_features": [
+            "AvgSessionDurationMinutes",
+            "SessionsPerWeek",
+            "AchievementsUnlocked"
+          ]
+        },
+        "llm": {
+          "coverage": 1.0,
+          "precision": 1.0,
+          "hallucination_rate": 0.0,
+          "hallucinated": [],
+          "direction_accuracy": 1.0,
+          "faithfulness": 1.0,
+          "mentioned": [
+            "AchievementsUnlocked",
+            "AvgSessionDurationMinutes",
+            "GameGenre",
+            "PlayerLevel",
+            "SessionsPerWeek"
+          ],
+          "top_shap_features": [
+            "AvgSessionDurationMinutes",
+            "SessionsPerWeek",
+            "AchievementsUnlocked"
+          ]
+        },
+        "llm+critic": {
+          "coverage": 1.0,
+          "precision": 1.0,
+          "hallucination_rate": 0.0,
+          "hallucinated": [],
+          "direction_accuracy": null,
+          "faithfulness": 1.0,
+          "mentioned": [
+            "AchievementsUnlocked",
+            "AvgSessionDurationMinutes",
+            "SessionsPerWeek"
+          ],
+          "top_shap_features": [
+            "AvgSessionDurationMinutes",
+            "SessionsPerWeek",
+            "AchievementsUnlocked"
+          ]
+        },
+        "llm+guardrail": {
+          "coverage": 1.0,
+          "precision": 1.0,
+          "hallucination_rate": 0.0,
+          "hallucinated": [],
+          "direction_accuracy": 1.0,
+          "faithfulness": 1.0,
+          "mentioned": [
+            "AchievementsUnlocked",
+            "AvgSessionDurationMinutes",
+            "GameGenre",
+            "PlayerLevel",
+            "SessionsPerWeek"
+          ],
+          "top_shap_features": [
+            "AvgSessionDurationMinutes",
+            "SessionsPerWeek",
+            "AchievementsUnlocked"
+          ]
+        }
+      },
+      "critic_issues": "player level, Simulation genre"
+    },
+    {
+      "player": 32623,
+      "predicted": "High",
+      "narratives": {
+        "template": "This player is predicted to have High engagement (82% confidence). The main drivers of this prediction are sessions per week (15.0) and average session duration (105.0). In contrast, achievements unlocked (7.0) pushes slightly the other way. Recommendation: focus on sessions per week to influence this player's engagement.",
+        "llm": "The model predicts that the player will have high engagement levels, with a confidence of 82%. The top contributing features to this prediction are sessions per week, average session duration, player level, and difficulty level. These features suggest that the player is actively playing the game regularly, spending a significant amount of time on each session, and is at a relatively high level, which likely indicates a strong sense of accomplishment and motivation. The player's achievements unlocked also suggests that they are invested in the game, but the relatively low difficulty level may be contributing to a sense of ease, rather than challenge.\n\nBased on this analysis, I recommend increasing the difficulty level of the game to Medium or higher to challenge the player and potentially increase engagement.",
+        "llm+critic": "The model predicts that the player will have high engagement levels, with a confidence of 82%. The top contributing features to this prediction are sessions per week, average session duration, player level, and Medium difficulty. These features suggest that the player is actively playing the game regularly, spending a significant amount of time on each session, and is at a relatively high level, which likely indicates a strong sense of accomplishment and motivation. The player's achievements unlocked suggests that they are invested in the game, but the relatively low difficulty level may be contributing to a sense of ease, rather than challenge. \nRECOMMENDATION: Increase the difficulty level of the game to Medium or higher to challenge the player and potentially increase engagement.",
+        "llm+guardrail": "The model predicts that the player will have high engagement levels, with a confidence of 82%. The top contributing features to this prediction are sessions per week, average session duration, player level, and difficulty level. The player's achievements unlocked also suggests that they are invested in the game, but the relatively low difficulty level may be contributing to a sense of ease, rather than challenge. Based on this analysis, I recommend increasing the difficulty level of the game to Medium or higher to challenge the player and potentially increase engagement."
+      },
+      "scores": {
+        "template": {
+          "coverage": 1.0,
+          "precision": 1.0,
+          "hallucination_rate": 0.0,
+          "hallucinated": [],
+          "direction_accuracy": null,
+          "faithfulness": 1.0,
+          "mentioned": [
+            "AchievementsUnlocked",
+            "AvgSessionDurationMinutes",
+            "SessionsPerWeek"
+          ],
+          "top_shap_features": [
+            "SessionsPerWeek",
+            "AvgSessionDurationMinutes",
+            "AchievementsUnlocked"
+          ]
+        },
+        "llm": {
+          "coverage": 1.0,
+          "precision": 0.833,
+          "hallucination_rate": 0.167,
+          "hallucinated": [
+            "InGamePurchases"
+          ],
+          "direction_accuracy": 0.0,
+          "faithfulness": 0.667,
+          "mentioned": [
+            "AchievementsUnlocked",
+            "AvgSessionDurationMinutes",
+            "GameDifficulty",
+            "InGamePurchases",
+            "PlayerLevel",
+            "SessionsPerWeek"
+          ],
+          "top_shap_features": [
+            "SessionsPerWeek",
+            "AvgSessionDurationMinutes",
+            "AchievementsUnlocked"
+          ]
+        },
+        "llm+critic": {
+          "coverage": 1.0,
+          "precision": 0.833,
+          "hallucination_rate": 0.167,
+          "hallucinated": [
+            "InGamePurchases"
+          ],
+          "direction_accuracy": 0.0,
+          "faithfulness": 0.667,
+          "mentioned": [
+            "AchievementsUnlocked",
+            "AvgSessionDurationMinutes",
+            "GameDifficulty",
+            "InGamePurchases",
+            "PlayerLevel",
+            "SessionsPerWeek"
+          ],
+          "top_shap_features": [
+            "SessionsPerWeek",
+            "AvgSessionDurationMinutes",
+            "AchievementsUnlocked"
+          ]
+        },
+        "llm+guardrail": {
+          "coverage": 1.0,
+          "precision": 1.0,
+          "hallucination_rate": 0.0,
+          "hallucinated": [],
+          "direction_accuracy": null,
+          "faithfulness": 1.0,
+          "mentioned": [
+            "AchievementsUnlocked",
+            "AvgSessionDurationMinutes",
+            "GameDifficulty",
+            "PlayerLevel",
+            "SessionsPerWeek"
+          ],
+          "top_shap_features": [
+            "SessionsPerWeek",
+            "AvgSessionDurationMinutes",
+            "AchievementsUnlocked"
+          ]
+        }
+      },
+      "critic_issues": "achievements unlocked, difficulty level"
+    },
+    {
+      "player": 37554,
+      "predicted": "Low",
+      "narratives": {
+        "template": "This player is predicted to have Low engagement (84% confidence). The main drivers of this prediction are sessions per week (0.0) and achievements unlocked (26.0). In contrast, average session duration (107.0) pushes slightly the other way. Recommendation: focus on sessions per week to influence this player's engagement.",
+        "llm": "Based on our analysis, we see that the player's engagement level is predicted to be low due to several factors. The player's average session duration is significantly shorter than average, which suggests they're not spending as much time playing. Additionally, the player's level and difficulty preference are not aligned with the most engaging experience, and they've unlocked a relatively small number of achievements. These factors collectively contribute to a low engagement prediction.\n\nBased on this analysis, I recommend increasing the difficulty level to Medium or higher to challenge the player and potentially increase their engagement.",
+        "llm+critic": "Predicted engagement: Low (confidence 84%). \nThe player's average session duration is significantly shorter than average, which suggests they're not spending as much time playing. \nAdditionally, the player's level and difficulty preference are not aligned with the most engaging experience, and they've unlocked a relatively small number of achievements. \nThese factors collectively contribute to a low engagement prediction.\n\nRecommendation: Increase the difficulty level to Medium or higher to challenge the player and potentially increase their engagement.",
+        "llm+guardrail": "Based on our analysis, we see that the player's engagement level is predicted to be low due to several factors. Additionally, the player's level and difficulty preference are not aligned with the most engaging experience, and they've unlocked a relatively small number of achievements. These factors collectively contribute to a low engagement prediction. Based on this analysis, I recommend increasing the difficulty level to Medium or higher to challenge the player and potentially increase their engagement."
+      },
+      "scores": {
+        "template": {
+          "coverage": 0.667,
+          "precision": 1.0,
+          "hallucination_rate": 0.0,
+          "hallucinated": [],
+          "direction_accuracy": null,
+          "faithfulness": 0.889,
+          "mentioned": [
+            "AchievementsUnlocked",
+            "AvgSessionDurationMinutes",
+            "SessionsPerWeek"
+          ],
+          "top_shap_features": [
+            "SessionsPerWeek",
+            "AvgSessionDurationMinutes",
+            "PlayerLevel"
+          ]
+        },
+        "llm": {
+          "coverage": 0.667,
+          "precision": 0.8,
+          "hallucination_rate": 0.2,
+          "hallucinated": [
+            "InGamePurchases"
+          ],
+          "direction_accuracy": 0.0,
+          "faithfulness": 0.567,
+          "mentioned": [
+            "AchievementsUnlocked",
+            "AvgSessionDurationMinutes",
+            "GameDifficulty",
+            "InGamePurchases",
+            "PlayerLevel"
+          ],
+          "top_shap_features": [
+            "SessionsPerWeek",
+            "AvgSessionDurationMinutes",
+            "PlayerLevel"
+          ]
+        },
+        "llm+critic": {
+          "coverage": 0.667,
+          "precision": 0.8,
+          "hallucination_rate": 0.2,
+          "hallucinated": [
+            "InGamePurchases"
+          ],
+          "direction_accuracy": 0.0,
+          "faithfulness": 0.567,
+          "mentioned": [
+            "AchievementsUnlocked",
+            "AvgSessionDurationMinutes",
+            "GameDifficulty",
+            "InGamePurchases",
+            "PlayerLevel"
+          ],
+          "top_shap_features": [
+            "SessionsPerWeek",
+            "AvgSessionDurationMinutes",
+            "PlayerLevel"
+          ]
+        },
+        "llm+guardrail": {
+          "coverage": 0.333,
+          "precision": 1.0,
+          "hallucination_rate": 0.0,
+          "hallucinated": [],
+          "direction_accuracy": 0.0,
+          "faithfulness": 0.583,
+          "mentioned": [
+            "AchievementsUnlocked",
+            "GameDifficulty",
+            "PlayerLevel"
+          ],
+          "top_shap_features": [
+            "SessionsPerWeek",
+            "AvgSessionDurationMinutes",
+            "PlayerLevel"
+          ]
+        }
+      },
+      "critic_issues": "average session duration, player level, Medium difficulty, achievements unlocked"
+    }
+  ]
+}

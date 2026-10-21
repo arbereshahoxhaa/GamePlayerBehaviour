@@ -25,13 +25,14 @@ EXPLAINER_SYS = (
 
 CRITIC_SYS = (
     "You are a strict fact-checker auditing an explanation of an ML prediction. "
-    "You are given the explanation and the ONLY admissible evidence (SHAP "
-    "contributions). Identify any sentence that cites a feature or effect NOT "
-    "present in the evidence, or that contradicts it. Then rewrite the "
-    "explanation so it is fully supported by the evidence, keeping it concise "
-    "(3-4 sentences + one recommendation). "
-    "Reply EXACTLY in this format:\n"
-    "ISSUES: <comma-separated problems, or 'none'>\n"
+    "You are given an ALLOWED FEATURES list and an explanation. Your rules:\n"
+    "1. Any feature NOT in the allowed list is forbidden - delete every sentence "
+    "that mentions it. Do NOT rephrase it, remove it entirely.\n"
+    "2. Do NOT introduce any new feature.\n"
+    "3. Keep the result concise (2-4 sentences) and end with one recommendation "
+    "that refers only to an allowed feature.\n"
+    "Reply EXACTLY in this format, nothing else:\n"
+    "ISSUES: <forbidden features you removed, comma-separated, or 'none'>\n"
     "REVISED: <the corrected explanation>"
 )
 
@@ -78,7 +79,9 @@ class CriticAgent:
     def review(self, narrative: str, ev) -> dict:
         if not self.client.available:
             return {"issues": "none (no LLM)", "revised": narrative}
-        user = (f"EVIDENCE:\n{ev.as_prompt_block()}\n\n"
+        allowed = "; ".join(ev.allowed_labels())
+        user = (f"ALLOWED FEATURES (the only ones that may appear): {allowed}\n\n"
+                f"EVIDENCE:\n{ev.as_prompt_block()}\n\n"
                 f"EXPLANATION TO AUDIT:\n{narrative}")
         try:
             raw = self.client.chat(CRITIC_SYS, user, temperature=0.0)
@@ -103,7 +106,7 @@ def _parse_critic(raw, fallback):
 
 
 # --------------------------------------------------------------- orchestrator
-def explain_player(ev, client, median=None, k=4) -> dict:
+def explain_player(ev, client, median=None, k=3) -> dict:
     """Run all three strategies and score each for faithfulness."""
     explainer = ExplainerAgent(client)
     critic = CriticAgent(client)
@@ -113,7 +116,8 @@ def explain_player(ev, client, median=None, k=4) -> dict:
         base = explainer.explain(ev)
         narratives["llm"] = base
         rev = critic.review(base, ev)
-        narratives["llm+critic"] = rev["revised"]
+        narratives["llm+critic"] = rev["revised"]           # LLM rewrite critic
+        narratives["llm+guardrail"] = F.guardrail_filter(base, ev)  # deterministic
         critic_info = {"issues": rev.get("issues")}
     else:
         critic_info = {"issues": "n/a (template-only mode)"}

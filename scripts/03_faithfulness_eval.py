@@ -12,6 +12,7 @@ Run:  python scripts/03_faithfulness_eval.py --n 60
 import argparse
 import json
 import time
+from collections import Counter
 
 import _bootstrap  # noqa: F401
 import matplotlib
@@ -36,8 +37,11 @@ def main(n):
                   "PlayerLevel", "AchievementsUnlocked", "Age"]].median().to_dict()
     print(f"LLM backend: {client.describe()} | players: {n}")
 
-    strategies = ["template", "llm", "llm+critic"] if client.available else ["template"]
+    strategies = (["template", "llm", "llm+critic", "llm+guardrail"]
+                  if client.available else ["template"])
     agg = {s: {m: [] for m in METRICS} for s in strategies}
+    words = {s: [] for s in strategies}
+    halluc_features = {s: Counter() for s in strategies}
     examples = []
 
     t0 = time.time()
@@ -47,6 +51,8 @@ def main(n):
         for s in strategies:
             for m in METRICS:
                 agg[s][m].append(out["scores"][s][m])
+            words[s].append(len(out["narratives"][s].split()))
+            halluc_features[s].update(out["scores"][s]["hallucinated"])
         if len(examples) < 4:
             examples.append({"player": int(idx), "predicted": ev.predicted_class,
                              "narratives": out["narratives"],
@@ -60,6 +66,9 @@ def main(n):
         report["strategies"][s] = {m: {"mean": float(np.mean(agg[s][m])),
                                        "std": float(np.std(agg[s][m]))}
                                    for m in METRICS}
+        report["strategies"][s]["avg_words"] = float(np.mean(words[s]))
+        report["strategies"][s]["hallucinated_features"] = dict(
+            halluc_features[s].most_common())
     report["examples"] = examples
     (C.RESULTS / "faithfulness.json").write_text(json.dumps(report, indent=2))
 
@@ -69,7 +78,8 @@ def main(n):
     means = [report["strategies"][s]["faithfulness"]["mean"] for s in labels]
     stds = [report["strategies"][s]["faithfulness"]["std"] for s in labels]
     bars = ax[0].bar(labels, means, yerr=stds, capsize=6,
-                     color=["#9ecae1", "#f58518", "#54a24b"][:len(labels)])
+                     color=["#9ecae1", "#f58518", "#e45756", "#54a24b"][:len(labels)])
+    ax[0].tick_params(axis="x", rotation=15)
     ax[0].set_ylim(0, 1.05); ax[0].set_title("Mean faithfulness-to-SHAP")
     ax[0].bar_label(bars, fmt="%.2f", padding=3)
     for m, mk, c in zip(["coverage", "hallucination_rate"], "os", ["#1b7837", "#b2182b"]):
@@ -84,7 +94,10 @@ def main(n):
         r = report["strategies"][s]
         print(f"{s:12s} faithfulness={r['faithfulness']['mean']:.3f} "
               f"coverage={r['coverage']['mean']:.3f} "
-              f"hallucination={r['hallucination_rate']['mean']:.3f}")
+              f"hallucination={r['hallucination_rate']['mean']:.3f} "
+              f"words={r['avg_words']:.0f}")
+        if r["hallucinated_features"]:
+            print(f"             invented: {r['hallucinated_features']}")
     print("Saved results/faithfulness.json + figure")
 
 
