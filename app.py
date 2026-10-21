@@ -3,6 +3,7 @@
 Run:  streamlit run app.py   (after: python scripts/01_train.py)
 """
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -400,13 +401,17 @@ with t6:
                     pass
             st.dataframe(pd.DataFrame(counts), width="stretch", hide_index=True)
 
+            # Mixed-case columns from the dataset must be double-quoted so they
+            # work on PostgreSQL (which lowercases unquoted identifiers) as well
+            # as SQLite; 2-arg ROUND needs a numeric cast on PostgreSQL.
             queries = {
                 "Players by dataset":
                     "SELECT dataset, COUNT(*) AS players FROM players GROUP BY dataset",
                 "Avg behaviour by engagement (dataset 1)":
-                    "SELECT EngagementLevel, ROUND(AVG(SessionsPerWeek),1) AS avg_sessions,"
-                    " ROUND(AVG(AvgSessionDurationMinutes),1) AS avg_duration"
-                    " FROM players WHERE dataset='kaggle_40k' GROUP BY EngagementLevel",
+                    'SELECT "EngagementLevel",'
+                    ' ROUND(CAST(AVG("SessionsPerWeek") AS numeric),1) AS avg_sessions,'
+                    ' ROUND(CAST(AVG("AvgSessionDurationMinutes") AS numeric),1) AS avg_duration'
+                    " FROM players WHERE dataset='kaggle_40k' GROUP BY \"EngagementLevel\"",
                 "Model metrics": "SELECT * FROM model_metrics",
                 "Faithfulness by backend":
                     "SELECT backend, strategy, faithfulness, hallucination_rate"
@@ -423,3 +428,23 @@ with t6:
                                  hide_index=True)
                 except Exception as e:
                     st.warning(f"Query failed: {e}")
+
+            st.markdown("**Run your own query** — read-only `SELECT` / `WITH` "
+                        "(quote mixed-case columns, e.g. `\"EngagementLevel\"`)")
+            user_sql = st.text_area(
+                "SQL", value='SELECT * FROM model_metrics',
+                height=90, label_visibility="collapsed")
+            if st.button("Run query", type="primary"):
+                low = user_sql.strip().rstrip(";").lower()
+                starts = low.startswith("select") or low.startswith("with")
+                writes = re.search(r"\b(insert|update|delete|drop|alter|create|"
+                                   r"truncate|grant|revoke|call|merge|copy)\b", low)
+                if not starts or ";" in user_sql.strip().rstrip(";") or writes:
+                    st.error("Only a single read-only SELECT / WITH query is allowed.")
+                else:
+                    try:
+                        df = pd.read_sql(user_sql, engine)
+                        st.caption(f"{len(df):,} rows")
+                        st.dataframe(df, width="stretch", hide_index=True)
+                    except Exception as e:
+                        st.warning(f"Query failed: {e}")
