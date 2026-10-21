@@ -39,6 +39,9 @@ if not (C.RESULTS / "metrics.json").exists():
 res = json.loads((C.RESULTS / "metrics.json").read_text())
 faith = (json.loads((C.RESULTS / "faithfulness.json").read_text())
          if (C.RESULTS / "faithfulness.json").exists() else None)
+# Per-backend study files (e.g. faithfulness_openai.json) for the model comparison.
+faith_by_backend = {p.stem.split("_", 1)[1]: json.loads(p.read_text())
+                    for p in sorted(C.RESULTS.glob("faithfulness_*.json"))}
 
 
 @st.cache_resource
@@ -258,9 +261,13 @@ with t4:
 # --------------------------------------------------------------- Faithfulness study
 with t5:
     st.subheader("Can we trust the AI's explanations?")
-    if faith is None:
+    if faith is None and not faith_by_backend:
         st.warning("Run `python scripts/03_faithfulness_eval.py --n 60` to populate this.")
     else:
+        if len(faith_by_backend) > 1:
+            which = st.radio("LLM model", list(faith_by_backend), horizontal=True,
+                             help="Compare how explanation quality depends on model capacity.")
+            faith = faith_by_backend[which]
         strat = list(faith["strategies"])
         labels = {"faithfulness": "Faithfulness (higher better)",
                   "coverage": "Coverage (higher better)",

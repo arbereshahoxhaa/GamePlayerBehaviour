@@ -70,7 +70,11 @@ def main(n):
         report["strategies"][s]["hallucinated_features"] = dict(
             halluc_features[s].most_common())
     report["examples"] = examples
+    report["primary_backend"] = client.primary
     (C.RESULTS / "faithfulness.json").write_text(json.dumps(report, indent=2))
+    # Keep a per-backend copy so runs on different models don't overwrite each other.
+    (C.RESULTS / f"faithfulness_{client.primary}.json").write_text(
+        json.dumps(report, indent=2))
 
     # figure: mean faithfulness per strategy
     fig, ax = plt.subplots(1, 2, figsize=(12, 4.5))

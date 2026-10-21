@@ -76,21 +76,33 @@ Engagement is driven overwhelmingly by **sessions per week** and **average
 session duration**; demographics and genre are near-irrelevant. All three XAI
 methods (impurity, permutation, SHAP) agree.
 
-## Faithfulness study (60 players, Ollama `llama3.2`)
+## Faithfulness study (60 players, two models)
+Faithfulness/coverage higher is better; hallucination lower is better.
+
 | strategy | faithfulness | coverage | hallucination | words |
 |----------|:-----------:|:--------:|:-------------:|:-----:|
-| template (deterministic) | **0.952** | 0.856 | **0.000** | 46 |
-| llm (single agent) | 0.878 | **0.889** | 0.041 | 110 |
-| llm + critic (LLM rewrite) | 0.894 | 0.883 | 0.030 | 93 |
-| llm + guardrail (SHAP rule) | 0.905 | 0.861 | **0.000** | 103 |
+| **llama3.2 (local, ~3B)** | | | | |
+| template (deterministic) | 0.952 | 0.856 | 0.000 | 46 |
+| llm (single agent) | 0.878 | 0.889 | 0.041 | 110 |
+| llm + critic (LLM rewrite) | 0.894 ↑ | 0.883 | 0.030 | 93 |
+| llm + guardrail (SHAP rule) | **0.905** | 0.861 | **0.000** | 103 |
+| **gpt-4o-mini (OpenAI)** | | | | |
+| template (deterministic) | 0.952 | 0.856 | 0.000 | 46 |
+| llm (single agent) | 0.917 | 0.978 | 0.030 | 96 |
+| llm + critic (LLM rewrite) | 0.868 ↓ | 0.750 | 0.037 | 66 |
+| llm + guardrail (SHAP rule) | **0.916** | 0.911 | **0.000** | 92 |
 
-The single LLM produces the richest, highest-coverage explanations but
-hallucinates features — almost always inventing *in-game purchases* (11/60). A
-second LLM acting as a critic helps only modestly and cannot remove every
-hallucination. A lightweight **deterministic guardrail** that drops sentences
-citing non-evidence features eliminates hallucination entirely while keeping the
-LLM's fluency and coverage — the best trade-off among natural-language methods.
-Takeaway: ground the fix in the SHAP evidence, don't throw a second LLM at it.
+Findings:
+- **A stronger model gives better base explanations** (faithfulness 0.88 → 0.92,
+  coverage 0.89 → 0.98) but still hallucinates — both models invent the same
+  feature, *in-game purchases* (~10/60), so scale does not solve XAI faithfulness.
+- **The LLM-critic effect is capacity-dependent**: it *helps* the weak model
+  (0.894 ↑) but *hurts* the strong one (0.868 ↓), because when the base output is
+  already faithful the critic only over-prunes (coverage 0.98 → 0.75).
+- **The deterministic SHAP guardrail is robust across both models**: it removes
+  every hallucination (0.000) while preserving coverage and fluency, and beats
+  the LLM critic in both regimes. Takeaway: ground the fix in the SHAP evidence,
+  don't throw a second (or bigger) LLM at it.
 
 ## Limitations
 - The dataset appears synthetic (very clean separability, two dominant features);
